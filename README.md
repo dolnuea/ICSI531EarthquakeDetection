@@ -1,1 +1,2 @@
 "# ICSI531EarthquakeDetection" 
+test
