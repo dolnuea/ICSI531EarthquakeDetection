@@ -8,3 +8,4 @@ __pycache__/
 .idea
 .idea/aws.xml
 .idea/misc.xml
+.idea/EarthquakeDetection.iml

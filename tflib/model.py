@@ -2,9 +2,9 @@ import abc
 import os
 import time
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import timeline
+
 
 class BaseModel(object):
     """__init__: Initializes a BaseModel object.
@@ -15,7 +15,13 @@ class BaseModel(object):
     4. reuse: whether to reuse weights defined by another model"""
 
     def __init__(self, inputs, checkpoint_dir, is_training=False,
-                   reuse=False):
+                 reuse=False):
+        self.accuracy = None
+        self.is_correct = None
+        self.summary_writer = None
+        self.merged_summaries = None
+        self.loss = None
+        self.optimizer = None
         self.inputs = inputs
         self.checkpoint_dir = checkpoint_dir
         self.is_training = is_training
@@ -26,8 +32,7 @@ class BaseModel(object):
 
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
         self._setup_prediction()
-        self.saver = tf.train.Saver(tf.all_variables(),max_to_keep=100)
-
+        self.saver = tf.compat.v1.train.Saver(tf.compat.v1.all_variables(), max_to_keep=100)
 
     @abc.abstractmethod
     def _setup_prediction(self):
@@ -68,7 +73,7 @@ class BaseModel(object):
         tofetch['step'] = self.global_step
         tofetch['summaries'] = self.merged_summaries
         data = sess.run(tofetch, options=run_options, run_metadata=run_metadata)
-        data['duration'] = time.time()-start_time
+        data['duration'] = time.time() - start_time
         return data
 
     def _test_step(self, sess, start_time, run_options=None, run_metadata=None):
@@ -82,7 +87,7 @@ class BaseModel(object):
         tofetch['step'] = self.global_step
         tofetch['is_correct'] = self.is_correct[0]
         data = sess.run(tofetch, options=run_options, run_metadata=run_metadata)
-        data['duration'] = time.time()-start_time
+        data['duration'] = time.time() - start_time
         return data
 
     @abc.abstractmethod
@@ -93,20 +98,18 @@ class BaseModel(object):
         """
         pass
 
-
     def load(self, sess, step=None):
-        """Loads the latest checkpoint from disk.  prints a message indicating the step number and path of the loaded checkpoint.
-        Args:
-          sess (tf.Session): current session in which the parameters are imported.
-          step: specific step to load.
+        """Loads the latest checkpoint from disk.  prints a message indicating the step number and path of the loaded
+        checkpoint. Args: sess (tf.Session): current session in which the parameters are imported. step: specific
+        step to load.
         """
-        if step==None:
-          checkpoint_path = tf.train.latest_checkpoint(self.checkpoint_dir)
+        if step is None:
+            checkpoint_path = tf.train.latest_checkpoint(self.checkpoint_dir)
         else:
-          checkpoint_path = os.path.join(self.checkpoint_dir,"model-"+str(step))
+            checkpoint_path = os.path.join(self.checkpoint_dir, "model-" + str(step))
         self.saver.restore(sess, checkpoint_path)
-        step = tf.train.global_step(sess, self.global_step)
-        print ('Loaded model at step {} from snapshot {}.'.format(step, checkpoint_path))
+        step = tf.compat.v1.train.global_step(sess, self.global_step)
+        print('Loaded model at step {} from snapshot {}.'.format(step, checkpoint_path))
 
     def save(self, sess):
         """Saves a checkpoint to disk.
@@ -115,7 +118,7 @@ class BaseModel(object):
         """
         checkpoint_path = os.path.join(self.checkpoint_dir, 'model')
         if not os.path.exists(self.checkpoint_dir):
-          os.makedirs(self.checkpoint_dir)
+            os.makedirs(self.checkpoint_dir)
         self.saver.save(sess, checkpoint_path, global_step=self.global_step)
 
     def test(self, n_val_steps):
@@ -131,12 +134,12 @@ class BaseModel(object):
         self.loss = tf.no_op(name="loss")
         with tf.name_scope('accuracy'):
             is_correct = tf.equal(self.layers['class_prediction'], targets)
-            self.is_correct = tf.to_float(is_correct)
+            self.is_correct = tf.compat.v1.to_float(is_correct)
             self.accuracy = tf.reduce_mean(self.is_correct)
 
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             coord = tf.train.Coordinator()
-            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            threads = tf.compat.v1.train.start_queue_runners(sess=sess, coord=coord)
 
             self.load(sess)
 
@@ -164,8 +167,8 @@ class BaseModel(object):
         """
         lr = tf.Variable(learning_rate, name='learning_rate',
                          trainable=False,
-                         collections=[tf.GraphKeys.VARIABLES])
-        self.summaries.append(tf.scalar_summary('learning_rate', lr))
+                         collections=[tf.compat.v1.GraphKeys.VARIABLES])
+        self.summaries.append(tf.summary.scalar('learning_rate', lr))
 
         # Optimizer
         self._setup_loss()
@@ -173,32 +176,29 @@ class BaseModel(object):
 
         # Profiling
         if profiling:
-            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            run_metadata = tf.RunMetadata()
+            run_options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
+            run_metadata = tf.compat.v1.RunMetadata()
         else:
             run_options = None
             run_metadata = None
 
         # Summaries
-        self.merged_summaries = tf.merge_summary(self.summaries)
+        self.merged_summaries = tf.compat.v1.summary.merge(self.summaries)
 
-        with tf.Session() as sess:
-            self.summary_writer = tf.train.SummaryWriter(self.checkpoint_dir, sess.graph)
+        with tf.compat.v1.Session() as sess:
+            self.summary_writer = tf.summary.SummaryWriter(self.checkpoint_dir, sess.graph)
 
-            print
-            'Initializing all variables.'
-            tf.initialize_local_variables().run()
-            tf.initialize_all_variables().run()
+            print('Initializing all variables.')
+            tf.compat.v1.initialize_local_variables().run()
+            tf.compat.v1.initialize_all_variables().run()
             if resume:
                 self.load(sess)
 
-            print
-            'Starting data threads coordinator.'
-            coord = tf.train.Coordinator()
-            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            print('Starting data threads coordinator.')
+            coord = tf.compat.v1.train.Coordinator()
+            threads = tf.compat.v1.train.start_queue_runners(sess=sess, coord=coord)
 
-            print
-            'Starting optimization.'
+            print('Starting optimization.')
             start_time = time.time()
             try:
                 while not coord.should_stop():  # Training loop
@@ -214,37 +214,30 @@ class BaseModel(object):
                                 print('Writing trace.')
                                 fid.write(ctf)
 
-                        print
-                        self._summary_step(step_data)
+                        print(self._summary_step(step_data))
                         self.summary_writer.add_summary(step_data['summaries'], global_step=step)
 
                     # Save checkpoint every `checkpoint_step`
                     if checkpoint_step is not None and (
                             step > 0) and step % checkpoint_step == 0:
-                        print
-                        'Step {} | Saving checkpoint.'.format(step)
+                        print('Step {} | Saving checkpoint.'.format(step))
                         self.save(sess)
 
             except KeyboardInterrupt:
-                print
-                'Interrupted training at step {}.'.format(step)
+                print('Interrupted training at step {}.'.format(step))
                 self.save(sess)
 
             except tf.errors.OutOfRangeError:
-                print
-                'Training completed at step {}.'.format(step)
+                print('Training completed at step {}.'.format(step))
                 self.save(sess)
 
             finally:
-                print
-                'Shutting down data threads.'
+                print('Shutting down data threads.')
                 coord.request_stop()
                 self.summary_writer.close()
 
             # Wait for data threads
-            print
-            'Waiting for all threads.'
+            print('Waiting for all threads.')
             coord.join(threads)
 
-            print
-            'Optimization done.'
+            print('Optimization done.')
