@@ -10,7 +10,9 @@ NEGATIVE_EXAMPLES_PATH = 'negative'
 
 # RECORD_REGEXP = re.compile(r'\d+\.tfrecords')
 
-
+# todo how does sac/mseed data turn into tf record? The Stream objects are created from SAC or MiniSEED (mseed) data
+#  files using the ObsPy library. The read method of the obspy.core.stream.Stream class is used to read data from a
+#  file and create a Stream object containing one or more Trace objects.
 class DataWriter(object):
     """ Writes .tfrecords file to disk from window Stream objects.
     """

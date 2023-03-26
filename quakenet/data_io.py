@@ -5,7 +5,6 @@ from obspy.core import read
 from obspy.core.utcdatetime import UTCDateTime
 import pandas as pd
 
-# todo how does sac/mseed data turn into tf record?
 
 def load_stream(path):
     """Loads a Stream object from the file at path.
