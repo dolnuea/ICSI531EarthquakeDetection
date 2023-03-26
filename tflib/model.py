@@ -34,6 +34,7 @@ class BaseModel(object):
         self._setup_prediction()
         self.saver = tf.compat.v1.train.Saver(tf.compat.v1.all_variables(), max_to_keep=100)
 
+    #  these methods implement tensorflow base model methods to create our own method
     @abc.abstractmethod
     def _setup_prediction(self):
         """Adefines the core layers for model prediction.

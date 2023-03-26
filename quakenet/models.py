@@ -17,7 +17,7 @@ import tflib.layers as layers
 
 
 def get(model_name, inputs, config, checkpoint_dir, is_training=False):
-    """Returns a Model instance instance by model name.
+    """Returns a Model instance by model name.
 
   Args:
     name: class name of the model to instantiate.
@@ -48,7 +48,7 @@ class ConvNetQuake(tflib.model.BaseModel):
         for i in range(depth):
             current_layer = layers.conv1(current_layer, c, ksize, stride=2, scope='conv{}'.format(i + 1),
                                          padding='SAME')
-            tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, current_layer)
+            tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.ACTIVATIONS, current_layer)
             self.layers['conv{}'.format(i + 1)] = current_layer
 
         bs, width, _ = current_layer.get_shape().as_list()
@@ -56,14 +56,14 @@ class ConvNetQuake(tflib.model.BaseModel):
 
         current_layer = layers.fc(current_layer, self.config.n_clusters, scope='logits', activation_fn=None)
         self.layers['logits'] = current_layer
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, current_layer)
+        tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.ACTIVATIONS, current_layer)
 
         self.layers['class_prob'] = tf.nn.softmax(current_layer, name='class_prob')
         self.layers['class_prediction'] = tf.argmax(self.layers['class_prob'], 1, name='class_pred')
 
         tf.contrib.layers.apply_regularization(
             tf.contrib.layers.l2_regularizer(self.config.regularization),
-            weights_list=tf.get_collection(tf.GraphKeys.WEIGHTS))
+            weights_list=tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.WEIGHTS))
 
     def validation_metrics(self):
         if not hasattr(self, '_validation_metrics'):
@@ -88,36 +88,36 @@ class ConvNetQuake(tflib.model.BaseModel):
             targets = tf.add(self.inputs['cluster_id'], self.config.add)
             raw_loss = tf.reduce_mean(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(self.layers['logits'], targets))
-            self.summaries.append(tf.scalar_summary('loss/train_raw', raw_loss))
+            self.summaries.append(tf.summary.scalar('loss/train_raw', raw_loss))
 
         self.loss = raw_loss
 
-        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        reg_losses = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES)
         if reg_losses:
             with tf.name_scope('regularizers'):
                 reg_loss = sum(reg_losses)
-                self.summaries.append(tf.scalar_summary('loss/regularization', reg_loss))
+                self.summaries.append(tf.summary.scalar('loss/regularization', reg_loss))
             self.loss += reg_loss
 
-        self.summaries.append(tf.scalar_summary('loss/train', self.loss))
+        self.summaries.append(tf.summary.scalar('loss/train', self.loss))
 
         with tf.name_scope('accuracy'):
             is_true_event = tf.cast(tf.greater(targets, tf.zeros_like(targets)), tf.int64)
             is_pred_event = tf.cast(tf.greater(self.layers['class_prediction'], tf.zeros_like(targets)), tf.int64)
             detection_is_correct = tf.equal(is_true_event, is_pred_event)
             is_correct = tf.equal(self.layers['class_prediction'], targets)
-            self.detection_accuracy = tf.reduce_mean(tf.to_float(detection_is_correct))
-            self.localization_accuracy = tf.reduce_mean(tf.to_float(is_correct))
-            self.summaries.append(tf.scalar_summary('detection_accuracy/train', self.detection_accuracy))
-            self.summaries.append(tf.scalar_summary('localization_accuracy/train', self.localization_accuracy))
+            self.detection_accuracy = tf.reduce_mean(tf.compat.v1.to_float(detection_is_correct))
+            self.localization_accuracy = tf.reduce_mean(tf.compat.v1.to_float(is_correct))
+            self.summaries.append(tf.summary.scalar('detection_accuracy/train', self.detection_accuracy))
+            self.summaries.append(tf.summary.scalar('localization_accuracy/train', self.localization_accuracy))
 
     def _setup_optimizer(self, learning_rate):
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
         if update_ops:
             updates = tf.group(*update_ops, name='update_ops')
             with tf.control_dependencies([updates]):
                 self.loss = tf.identity(self.loss)
-        optim = tf.train.AdamOptimizer(learning_rate).minimize(
+        optim = tf.compat.v1.train.AdamOptimizer(learning_rate).minimize(
             self.loss, name='optimizer', global_step=self.global_step)
         self.optimizer = optim
 

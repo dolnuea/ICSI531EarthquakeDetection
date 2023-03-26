@@ -9,6 +9,7 @@
 with their cluster id, cluster proba, start event time of the window, end
 event time of the window
 """
+# todo remove arguments and simplify run. This is where the prediction will run. For later steps (train/test)
 
 import os
 import setproctitle
