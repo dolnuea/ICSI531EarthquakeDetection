@@ -1,5 +1,10 @@
 """Classes and functions to read, write and feed data."""
 
+"""
+Writes and reads tensorflow data which are created from streams from load functions in data_io for training.
+Prepares training dataset.
+"""
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -23,6 +28,7 @@ class DataWriter(object):
         self._written = 0
         self._writer = tf.compat.v1.python_io.TFRecordWriter(self._filename)
 
+    """Puts seismic data traces into a numpy array. Generates the training data (from the traces we got from mseed/sac) for tensorflow"""
     def write(self, sample_window, cluster_id):
         n_traces = len(sample_window)
         n_samples = len(sample_window[0].data)
@@ -50,13 +56,18 @@ class DataWriter(object):
     def close(self):
         self._writer.close()
 
+
+    """takes an integer value as input and returns a TensorFlow Feature object with an int64_list field containing a 
+    single integer value."""
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
+    """ takes a numpy array value as input and returns a TensorFlow Feature object with a float_list field containing the flattened numpy array as a list of floats."""
     def _float_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(
             value=value.flatten().tolist()))
 
+    """Takes a bytes object value as input and returns a TensorFlow Feature object with a bytes_list field containing a single bytes object"""
     def _bytes_feature(self, value):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
@@ -71,6 +82,7 @@ class DataReader(object):
         self.n_traces = config.n_traces
 
         self._reader = tf.compat.v1.TFRecordReader()
+        # self._reader = tf.data.TFRecordDataset()
 
     def read(self):
         filename_queue = self._filename_queue()
@@ -78,6 +90,12 @@ class DataReader(object):
         example = self._parse_example(serialized_example)
         return example
 
+    """Shuffles the training files for randomness. Shuffling the files is important to introduce randomness
+     into the data that the model is training on. When data is presented in a fixed order, the model 
+     can potentially learn patterns that are specific to the order of the data rather than the 
+     underlying features of the data. Shuffling the files helps to ensure that the model sees the
+      data in a random order during training, making it less likely to learn such spurious patterns.
+    This can lead to better generalization and performance on unseen data."""
     def _filename_queue(self):
         fnames = []
         for root, dirs, files in os.walk(self._path):
@@ -89,6 +107,7 @@ class DataReader(object):
                                                            num_epochs=self._config.n_epochs)
         return fname_q
 
+    """parses the dataset"""
     def _parse_example(self, serialized_example):
         features = tf.io.parse_single_example(
             serialized_example,
@@ -118,6 +137,15 @@ class DataPipeline(object):
     Attributes:
     samples: Tensor(float). batch of input samples [batch_size, n_channels, n_points]
     labels: Tensor(int32). Corresponding batch 0 or 1 labels, [batch_size,]
+
+    loads the data from the specified dataset path and creates a validation dataset
+     by reading and batching the data. The validation dataset is used to assess the performance of the trained model.
+
+    The point of loading data for validation is to evaluate the performance of a machine learning model
+    on a dataset that it has not been trained on. This is important because a model can overfit to
+    the training data, which means that it can perform well on the training data but poorly on new,
+    unseen data. By evaluating the model on a separate validation dataset, we can get an estimate
+    of how well it will perform on new data and make adjustments to the model or training process as needed
 
     """
 

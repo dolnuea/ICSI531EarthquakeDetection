@@ -21,6 +21,8 @@ from tqdm import tqdm
 from quakenet import data_pipeline as dpp
 import quakenet.config as config
 
+tf.compat.v1.disable_eager_execution()
+
 flags = tf.compat.v1.flags
 flags.DEFINE_string('data_path',
                     None, 'path to the records containing the windows.')

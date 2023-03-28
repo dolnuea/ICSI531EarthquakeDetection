@@ -5,7 +5,8 @@ import time
 import tensorflow as tf
 from tensorflow.python.client import timeline
 
-
+"""Parent class of ConvNetQuake model in models.py and defines abstract method to be implemented by ConvNetQuake 
+class"""
 class BaseModel(object):
     """__init__: Initializes a BaseModel object.
     Arguments:

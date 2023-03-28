@@ -5,7 +5,10 @@ from obspy.core import read
 from obspy.core.utcdatetime import UTCDateTime
 import pandas as pd
 
+"""INPUT METHODS"""
 
+
+# stream = MSEED/SAC files
 def load_stream(path):
     """Loads a Stream object from the file at path.
 
@@ -48,6 +51,9 @@ def load_catalog(path):
             utc_timestamp.append(UTCDateTime(e).timestamp)
         catalog['utc_timestamp'] = utc_timestamp
     return catalog
+
+
+"""OUTPUT METHODS"""
 
 
 def write_stream(stream, path):
