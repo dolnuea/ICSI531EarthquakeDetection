@@ -10,3 +10,4 @@ __pycache__/
 .idea/misc.xml
 .idea/EarthquakeDetection.iml
 /data/
+/visualization/data/
