@@ -28,7 +28,9 @@ class DataWriter(object):
         self._written = 0
         self._writer = tf.compat.v1.python_io.TFRecordWriter(self._filename)
 
-    """Puts seismic data traces into a numpy array. Generates the training data (from the traces we got from mseed/sac) for tensorflow"""
+    """Puts seismic data traces into a numpy array. Generates the training data (from the traces we got from 
+    mseed/sac) for tensorflow"""
+
     def write(self, sample_window, cluster_id):
         n_traces = len(sample_window)
         n_samples = len(sample_window[0].data)
@@ -56,18 +58,22 @@ class DataWriter(object):
     def close(self):
         self._writer.close()
 
-
     """takes an integer value as input and returns a TensorFlow Feature object with an int64_list field containing a 
     single integer value."""
+
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
-    """ takes a numpy array value as input and returns a TensorFlow Feature object with a float_list field containing the flattened numpy array as a list of floats."""
+    """takes a numpy array value as input and returns a TensorFlow Feature object with a float_list field containing 
+    the flattened numpy array as a list of floats."""
+
     def _float_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(
             value=value.flatten().tolist()))
 
-    """Takes a bytes object value as input and returns a TensorFlow Feature object with a bytes_list field containing a single bytes object"""
+    """Takes a bytes object value as input and returns a TensorFlow Feature object with a bytes_list field containing 
+    a single bytes object"""
+
     def _bytes_feature(self, value):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
@@ -96,6 +102,7 @@ class DataReader(object):
      underlying features of the data. Shuffling the files helps to ensure that the model sees the
       data in a random order during training, making it less likely to learn such spurious patterns.
     This can lead to better generalization and performance on unseen data."""
+
     def _filename_queue(self):
         fnames = []
         for root, dirs, files in os.walk(self._path):
@@ -108,6 +115,7 @@ class DataReader(object):
         return fname_q
 
     """parses the dataset"""
+
     def _parse_example(self, serialized_example):
         features = tf.io.parse_single_example(
             serialized_example,

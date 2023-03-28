@@ -1,16 +1,29 @@
-# This is a sample Python script.
+from quakenet.data_conversion import *
+from quakenet.data_io import *
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
+"""Testing data load/processing methods"""
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    print("---Loading streams from MSEED/SAC files---")
+    stream = load_stream("data\\mseed\\PWU20080720223000.mseed")
+    print(stream)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print('\n')
+
+    print("---Loading catalogs from CSV files---")
+    catalog = load_catalog("data\\catalog\\Benz_catalog.csv")
+    print(catalog)
+
+    print('\n')
+
+    print("---Stream to numpy array---")
+    stream_arr = stream2array(stream)
+    print(stream_arr)
+
+    print('\n')
+
+    print("---Converting catalog: skipped (error)---")
+    dest_path = "data\\catalog"
+    src_path = "data\\catalog\\Benz_catalog.csv"
+    # convert_catalog(src_path, dest_path)

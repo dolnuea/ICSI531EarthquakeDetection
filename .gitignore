@@ -9,5 +9,7 @@ __pycache__/
 .idea/aws.xml
 .idea/misc.xml
 .idea/EarthquakeDetection.iml
-/data/
-/visualization/data/
+
+/data
+visualization/data/tfrecords/augmented_tfrecords_compress.tfrecords
+/visualization/data/tfrecords/
