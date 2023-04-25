@@ -6,7 +6,7 @@ from quakenet.data_io import *
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print("---Loading streams from MSEED/SAC files---")
-    stream = load_stream("data\\mseed\\PWU20080720223000.mseed")
+    stream = load_stream("data\\mseed\\GSOK029_12-2016.mseed")
     print(stream)
 
     print('\n')
