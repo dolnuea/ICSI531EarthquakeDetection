@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import tensorflow_addons as tfa
 
 
 # helper function for creating a convolutional layer in a TensorFlow mode
@@ -10,7 +11,7 @@ def conv(inputs,
          padding='SAME',  # padding to use for the convolution
          use_bias=True,
          activation_fn=tf.compat.v1.nn.relu,  # the activation function to use (default is ReLU)
-         initializer=tf.contrib.layers.variance_scaling_initializer(),  # the weight initializer to use
+         initializer=tf.keras.initializers.VarianceScaling,  # the weight initializer to use
          regularizer=None,  # the regularization function to use
          scope=None,  # the variable scope to use for the layer
          reuse=None):  # whether to reuse the layer's variables
@@ -50,7 +51,7 @@ def transpose_conv(inputs,
                    padding='SAME',
                    use_bias=True,
                    activation_fn=tf.compat.v1.nn.relu,
-                   initializer=tf.compat.v1.contrib.layers.variance_scaling_initializer(),
+                   initializer=tf.keras.initializers.VarianceScaling,
                    regularizer=None,
                    scope=None,
                    reuse=None):
@@ -213,7 +214,7 @@ def conv3(inputs,
 # defines a fully connected layer in a neural network. A fully connected layer, also known as a dense layer,
 # connects each neuron in the previous layer to every neuron in the current layer
 def fc(inputs, nfilters, use_bias=True, activation_fn=tf.compat.v1.nn.relu,
-       initializer=tf.compat.v1.contrib.layers.variance_scaling_initializer(),
+       initializer=tf.keras.initializers.VarianceScaling,
        regularizer=None, scope=None, reuse=None):
     with tf.compat.v1.variable_scope(scope, reuse=reuse):
         n_in = inputs.get_shape().as_list()[-1]

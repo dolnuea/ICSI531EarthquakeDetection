@@ -16,7 +16,7 @@ import quakenet.config as config
 def main(args):
   setproctitle.setproctitle('quakenet')
 
-  tf.set_random_seed(1234)
+  tf.random.set_seed(1234)
 
   if args.n_clusters == None:
     raise ValueError('Define the number of clusters with --n_clusters')
@@ -59,16 +59,18 @@ def main(args):
     summary_step=10)
 
 if __name__ == '__main__':
+  tf.compat.v1.disable_eager_execution()
+
   parser = argparse.ArgumentParser()
   parser.add_argument('--model', type=str, default='ConvNetQuake')
   parser.add_argument('--checkpoint_dir', type=str, default='output/checkpoints')
-  parser.add_argument('--dataset', type=str, default='data/hackathon/train')
+  parser.add_argument('--dataset', type=str, default='data/train')
   parser.add_argument('--batch_size', type=int, default=64)
   parser.add_argument('--learning_rate', type=float, default=1e-4)
   parser.add_argument('--resume', action='store_true')
   parser.set_defaults(resume=False)
   parser.add_argument('--profiling', action='store_true')
-  parser.add_argument('--n_clusters',type=int,default=None)
+  parser.add_argument('--n_clusters',type=int,default=50)
   parser.set_defaults(profiling=False)
   args = parser.parse_args()
 
