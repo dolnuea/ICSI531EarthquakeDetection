@@ -88,10 +88,10 @@ class DataReader(object):
         self.n_traces = config.n_traces
 
         self._reader = tf.compat.v1.TFRecordReader()
-        # self._reader = tf.data.TFRecordDataset()
 
     def read(self):
         filename_queue = self._filename_queue()
+        # self._reader = tf.data.TFRecordDataset(filename_queue)
         _, serialized_example = self._reader.read(filename_queue)
         example = self._parse_example(serialized_example)
         return example
@@ -112,6 +112,7 @@ class DataReader(object):
         fname_q = tf.compat.v1.train.string_input_producer(fnames,
                                                            shuffle=self._shuffle,
                                                            num_epochs=self._config.n_epochs)
+        # fname_q = tf.data.Dataset.from_tensor_slices(fnames).shuffle(tf.shape(fnames, out_type=tf.int64)[0]).repeat(self._config.n_epochs)
         return fname_q
 
     """parses the dataset"""

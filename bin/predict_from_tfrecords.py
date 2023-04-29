@@ -8,6 +8,8 @@
 """ Prediction from a tfrecords. Create a catalog of found events
 with their cluster id, cluster proba, start event time of the window, end
 event time of the window
+
+Detecting and locating events in continuous waveform data
 """
 # todo remove arguments and simplify run. This is where the prediction will run. For later steps (train/test)
 
