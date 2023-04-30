@@ -1,24 +1,21 @@
 """Classes and functions to read, write and feed data."""
 
-"""
-Writes and reads tensorflow data which are created from streams from load functions in data_io for training.
-Prepares training dataset.
-"""
-
 import os
+import re
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
+import csv
+import json
+from obspy.core.utcdatetime import UTCDateTime
 
 POSITIVE_EXAMPLES_PATH = 'positive'
 NEGATIVE_EXAMPLES_PATH = 'negative'
-
-
 # RECORD_REGEXP = re.compile(r'\d+\.tfrecords')
 
-# todo how does sac/mseed data turn into tf record? The Stream objects are created from SAC or MiniSEED (mseed) data
-#  files using the ObsPy library. The read method of the obspy.core.stream.Stream class is used to read data from a
-#  file and create a Stream object containing one or more Trace objects.
+
 class DataWriter(object):
+
     """ Writes .tfrecords file to disk from window Stream objects.
     """
 
@@ -26,10 +23,7 @@ class DataWriter(object):
         self._writer = None
         self._filename = filename
         self._written = 0
-        self._writer = tf.compat.v1.python_io.TFRecordWriter(self._filename)
-
-    """Puts seismic data traces into a numpy array. Generates the training data (from the traces we got from 
-    mseed/sac) for tensorflow"""
+        self._writer = tf.io.TFRecordWriter(self._filename)
 
     def write(self, sample_window, cluster_id):
         n_traces = len(sample_window)
@@ -42,7 +36,7 @@ class DataWriter(object):
         start_time = np.int64(sample_window[0].stats.starttime.timestamp)
         end_time = np.int64(sample_window[0].stats.endtime.timestamp)
         # print('starttime {}, endtime {}'.format(UTCDateTime(start_time),
-        # UTCDateTime(end_time)))
+                                                # UTCDateTime(end_time)))
 
         example = tf.train.Example(features=tf.train.Features(feature={
             'window_size': self._int64_feature(n_samples),
@@ -58,21 +52,12 @@ class DataWriter(object):
     def close(self):
         self._writer.close()
 
-    """takes an integer value as input and returns a TensorFlow Feature object with an int64_list field containing a 
-    single integer value."""
-
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
-    """takes a numpy array value as input and returns a TensorFlow Feature object with a float_list field containing 
-    the flattened numpy array as a list of floats."""
-
     def _float_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(
-            value=value.flatten().tolist()))
-
-    """Takes a bytes object value as input and returns a TensorFlow Feature object with a bytes_list field containing 
-    a single bytes object"""
+                                    value=value.flatten().tolist()))
 
     def _bytes_feature(self, value):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -87,21 +72,14 @@ class DataReader(object):
         self.win_size = config.win_size
         self.n_traces = config.n_traces
 
+
         self._reader = tf.compat.v1.TFRecordReader()
 
     def read(self):
         filename_queue = self._filename_queue()
-        # self._reader = tf.data.TFRecordDataset(filename_queue)
         _, serialized_example = self._reader.read(filename_queue)
         example = self._parse_example(serialized_example)
         return example
-
-    """Shuffles the training files for randomness. Shuffling the files is important to introduce randomness
-     into the data that the model is training on. When data is presented in a fixed order, the model 
-     can potentially learn patterns that are specific to the order of the data rather than the 
-     underlying features of the data. Shuffling the files helps to ensure that the model sees the
-      data in a random order during training, making it less likely to learn such spurious patterns.
-    This can lead to better generalization and performance on unseen data."""
 
     def _filename_queue(self):
         fnames = []
@@ -110,12 +88,9 @@ class DataReader(object):
                 if f.endswith(".tfrecords"):
                     fnames.append(os.path.join(root, f))
         fname_q = tf.compat.v1.train.string_input_producer(fnames,
-                                                           shuffle=self._shuffle,
-                                                           num_epochs=self._config.n_epochs)
-        # fname_q = tf.data.Dataset.from_tensor_slices(fnames).shuffle(tf.shape(fnames, out_type=tf.int64)[0]).repeat(self._config.n_epochs)
+                                                 shuffle=self._shuffle,
+                                                 num_epochs=self._config.n_epochs)
         return fname_q
-
-    """parses the dataset"""
 
     def _parse_example(self, serialized_example):
         features = tf.io.parse_single_example(
@@ -125,7 +100,7 @@ class DataReader(object):
                 'n_traces': tf.io.FixedLenFeature([], tf.int64),
                 'data': tf.io.FixedLenFeature([], tf.string),
                 'cluster_id': tf.io.FixedLenFeature([], tf.int64),
-                'start_time': tf.io.FixedLenFeature([], tf.int64),
+                'start_time': tf.io.FixedLenFeature([],tf.int64),
                 'end_time': tf.io.FixedLenFeature([], tf.int64)})
 
         # Convert and reshape
@@ -141,20 +116,12 @@ class DataReader(object):
 
 
 class DataPipeline(object):
+
     """Creates a queue op to stream data for training.
 
     Attributes:
     samples: Tensor(float). batch of input samples [batch_size, n_channels, n_points]
     labels: Tensor(int32). Corresponding batch 0 or 1 labels, [batch_size,]
-
-    loads the data from the specified dataset path and creates a validation dataset
-     by reading and batching the data. The validation dataset is used to assess the performance of the trained model.
-
-    The point of loading data for validation is to evaluate the performance of a machine learning model
-    on a dataset that it has not been trained on. This is important because a model can overfit to
-    the training data, which means that it can perform well on the training data but poorly on new,
-    unseen data. By evaluating the model on a separate validation dataset, we can get an estimate
-    of how well it will perform on new data and make adjustments to the model or training process as needed
 
     """
 
@@ -165,7 +132,7 @@ class DataPipeline(object):
 
         if is_training:
 
-            with tf.name_scope('inputs'):
+            with tf.compat.v1.name_scope('inputs'):
                 self._reader = DataReader(dataset_path, config=config)
                 samples = self._reader.read()
                 sample_input = samples['data']
@@ -180,7 +147,7 @@ class DataPipeline(object):
 
         elif not is_training:
 
-            with tf.name_scope('validation_inputs'):
+            with tf.compat.v1.name_scope('validation_inputs'):
                 self._reader = DataReader(dataset_path, config=config)
                 samples = self._reader.read()
 
@@ -198,3 +165,4 @@ class DataPipeline(object):
         else:
             raise ValueError(
                 "is_training flag is not defined, set True for training and False for testing")
+

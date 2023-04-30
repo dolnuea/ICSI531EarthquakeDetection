@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# encoding: utf-8
+# -------------------------------------------------------------------
+# File:    train.py.py
+# Author:  Michael Gharbi <gharbi@mit.edu>
+# Created: 2016-10-25
+# -------------------------------------------------------------------
+#
+#
+#
+# ------------------------------------------------------------------#
 """Train a model."""
 
 import argparse
@@ -16,9 +27,9 @@ import quakenet.config as config
 def main(args):
     setproctitle.setproctitle('quakenet')
 
-    tf.random.set_seed(1234)
+    tf.compat.v1.set_random_seed(1234)
 
-    if args.n_clusters is None:
+    if args.n_clusters == None:
         raise ValueError('Define the number of clusters with --n_clusters')
 
     cfg = config.Config()
@@ -51,7 +62,7 @@ def main(args):
     # model
     model = models.get(args.model, samples, cfg, args.checkpoint_dir, is_training=True)
 
-    # train loop
+    # train.py loop
     model.train(
         args.learning_rate,
         resume=args.resume,
@@ -61,19 +72,16 @@ def main(args):
 
 if __name__ == '__main__':
     tf.compat.v1.disable_eager_execution()
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='ConvNetQuake')
     parser.add_argument('--checkpoint_dir', type=str, default='output\\checkpoints')
-    parser.add_argument('--dataset', type=str, default='..\\data\\train\\50_clusters')
+    parser.add_argument('--dataset', type=str, default='..\\data\\train\\6_clusters')
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--resume', action='store_true')
     parser.set_defaults(resume=False)
     parser.add_argument('--profiling', action='store_true')
-    parser.add_argument('--n_clusters', type=int, default=50)
+    parser.add_argument('--n_clusters', type=int, default=6)
     parser.set_defaults(profiling=False)
     args = parser.parse_args()
 
