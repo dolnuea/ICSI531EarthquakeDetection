@@ -60,6 +60,7 @@ class BaseModel(object):
         """
         pass
 
+    @tf.function
     def _train_step(self, sess, start_time, run_options=None, run_metadata=None):
         """Step of the training loop.
         Arguments:
@@ -178,13 +179,10 @@ class BaseModel(object):
         self._setup_optimizer(lr)
 
         # Profiling
-        # if profiling:
-        #     run_options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
-        #     run_metadata = tf.compat.v1.RunMetadata()
-        # else:
-        #     run_options = None
-        #     run_metadata = None
-
+        if profiling:
+            profiler =tf.compat.v1.profiler.Profiler(tf.compat.v1.get_default_graph())
+        else:
+            profiler = None
         # Summaries: Read Migrate to TF2 https://www.tensorflow.org/api_docs/python/tf/compat/v1/summary/merge
         # self.merged_summaries = tf.compat.v1.summary.merge(self.summaries)
 
@@ -194,8 +192,8 @@ class BaseModel(object):
             self.summary_writer = tf.summary.SummaryWriter()
 
             print('Initializing all variables.')
-            tf.compat.v1.initialize_local_variables().run()
-            tf.compat.v1.initialize_all_variables().run()
+            tf.compat.v1.local_variables_initializer().run()
+            tf.compat.v1.global_variables_initializer().run()
             if resume:
                 self.load(sess)
 
