@@ -61,6 +61,8 @@ def main(args):
 
 if __name__ == '__main__':
     tf.compat.v1.disable_eager_execution()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='ConvNetQuake')

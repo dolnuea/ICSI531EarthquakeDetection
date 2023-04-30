@@ -61,9 +61,12 @@ class ConvNetQuake(tflib.model.BaseModel):
         self.layers['class_prob'] = tf.nn.softmax(current_layer, name='class_prob')
         self.layers['class_prediction'] = tf.argmax(self.layers['class_prob'], 1, name='class_pred')
 
-        tf.contrib.layers.apply_regularization(
-            tf.contrib.layers.l2_regularizer(self.config.regularization),
-            weights_list=tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.WEIGHTS))
+        # tf.contrib.layers.apply_regularization(
+        #     tf.contrib.layers.l2_regularizer(self.config.regularization),
+        #     weights_list=tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.WEIGHTS))
+
+        tf.keras.regularizers.l2(self.config.regularization)\
+            (tf.stack([tf.nn.l2_loss(w) for w in tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.WEIGHTS)]))
 
     def validation_metrics(self):
         if not hasattr(self, '_validation_metrics'):
@@ -87,7 +90,7 @@ class ConvNetQuake(tflib.model.BaseModel):
             # change target range from -1:n_clusters-1 to 0:n_clusters
             targets = tf.add(self.inputs['cluster_id'], self.config.add)
             raw_loss = tf.reduce_mean(
-                tf.nn.sparse_softmax_cross_entropy_with_logits(self.layers['logits'], targets))
+                tf.nn.sparse_softmax_cross_entropy_with_logits(targets, self.layers['logits']))
             self.summaries.append(tf.summary.scalar('loss/train_raw', raw_loss))
 
         self.loss = raw_loss
@@ -126,7 +129,7 @@ class ConvNetQuake(tflib.model.BaseModel):
             'optimizer': self.optimizer,
             'loss': self.loss,
             'detection_accuracy': self.detection_accuracy,
-            'localization_accuracy': self.localization_accuracy
+            'localization_accuracy': self.localization_accuracy,
         }
 
     def _summary_step(self, step_data):

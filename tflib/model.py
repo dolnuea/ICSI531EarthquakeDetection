@@ -167,9 +167,10 @@ class BaseModel(object):
           checkpoint_step (int): frequency at which checkpoints are saved to disk.
           profiling: whether to save profiling trace at each summary step. (used for perf. debugging).
         """
-        lr = tf.Variable(learning_rate, name='learning_rate',
-                         trainable=False,
-                         collections=[tf.compat.v1.GraphKeys.VARIABLES])
+        # the issue is that the sess is not being correctly
+        # In TensorFlow 2, variables are automatically added to
+        # the tf.compat.v1.GraphKeys.VARIABLES collection, so there's no need to specify it explicitly.
+        lr = tf.Variable(learning_rate, name='learning_rate', trainable=False)
         self.summaries.append(tf.summary.scalar('learning_rate', lr))
 
         # Optimizer
@@ -177,18 +178,20 @@ class BaseModel(object):
         self._setup_optimizer(lr)
 
         # Profiling
-        if profiling:
-            run_options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
-            run_metadata = tf.compat.v1.RunMetadata()
-        else:
-            run_options = None
-            run_metadata = None
+        # if profiling:
+        #     run_options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
+        #     run_metadata = tf.compat.v1.RunMetadata()
+        # else:
+        #     run_options = None
+        #     run_metadata = None
 
-        # Summaries
-        self.merged_summaries = tf.compat.v1.summary.merge(self.summaries)
+        # Summaries: Read Migrate to TF2 https://www.tensorflow.org/api_docs/python/tf/compat/v1/summary/merge
+        # self.merged_summaries = tf.compat.v1.summary.merge(self.summaries)
 
+        # todo sess is not being defined correctly so when passed inside the loop it cannot
+        #  send the tensors
         with tf.compat.v1.Session() as sess:
-            self.summary_writer = tf.summary.SummaryWriter(self.checkpoint_dir, sess.graph)
+            self.summary_writer = tf.summary.SummaryWriter()
 
             print('Initializing all variables.')
             tf.compat.v1.initialize_local_variables().run()
@@ -204,17 +207,17 @@ class BaseModel(object):
             start_time = time.time()
             try:
                 while not coord.should_stop():  # Training loop
-                    step_data = self._train_step(sess, start_time, run_options, run_metadata)
+                    step_data = self._train_step(sess, start_time)
                     step = step_data['step']
 
                     if step > 0 and step % summary_step == 0:
-                        if profiling:
-                            self.summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
-                            tl = timeline.Timeline(run_metadata.step_stats)
-                            ctf = tl.generate_chrome_trace_format()
-                            with open(os.path.join(self.checkpoint_dir, 'timeline.json'), 'w') as fid:
-                                print('Writing trace.')
-                                fid.write(ctf)
+                        # if profiling:
+                        #     self.summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
+                        #     tl = timeline.Timeline(run_metadata.step_stats)
+                        #     ctf = tl.generate_chrome_trace_format()
+                        #     with open(os.path.join(self.checkpoint_dir, 'timeline.json'), 'w') as fid:
+                        #         print('Writing trace.')
+                        #         fid.write(ctf)
 
                         print(self._summary_step(step_data))
                         self.summary_writer.add_summary(step_data['summaries'], global_step=step)
@@ -236,7 +239,8 @@ class BaseModel(object):
             finally:
                 print('Shutting down data threads.')
                 coord.request_stop()
-                self.summary_writer.close()
+                # not implemented
+                # self.summary_writer.close()
 
             # Wait for data threads
             print('Waiting for all threads.')
