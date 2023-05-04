@@ -14,13 +14,8 @@ ConvNetQuake is trained on data from Oklahoma (USA).
 The continuous waveform data and earthquake catalog are publicly available at https://www.iris.edu/hq/ and http://www.ou.edu/ogs.html
 
 The `data` directory contains:
-* `streams`: 2.5 years of monthly streams from GSOK029 and GSOK027 in .mseed 
-* `catalogs`: earthquake catalogs the OGS (years 2014 to 2016) and from Benz et al. 2015 (Feb. to Sept. 2014)
 * `6_clusters`: windows used for training and testing of ConvNetQuake with 6 geographic areas
 * `50_clusters`: windows used for training and testing of ConvNetQuake with 50 geographic areas
-* `known_template`: template T_1 used to generate synthetic data 
-* `unknown_template`: template T_2 used to generate synthetic data 
-* `synth`: directory of synthetic data for testing 
 
 ## 1 - What will you find in this repository ?
 
