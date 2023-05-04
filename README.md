@@ -3,7 +3,7 @@
 Perol., T, M. Gharbi and M. Denolle. Convolutional Neural Network for Earthquake detection and location. *Science Advances*, Vol. 4, no. 2, e1700578, DOI: 10.1126/sciadv.1700578, 2018 [Link](http://advances.sciencemag.org/content/4/2/e1700578).
 
 ## Installing the dataset
-* Download the [data](https://www.dropbox.com/sh/3p9rmi1bcpvnk5k/AAAV8n9VG_e0QXOpoofsSH0Ma?dl=0). You do not have to download the whole thing. For train dataset, download `6_clusters/detection/train`
+* Download the [data](https://www.dropbox.com/sh/3p9rmi1bcpvnk5k/AAAV8n9VG_e0QXOpoofsSH0Ma?dl=0). You do not have to download the whole thing. For train dataset, you can download the already processed seismic data in tensorflow files `6_clusters/detection/train`. For raw catalog data, download `data/catalogs/OK_2014-2015-2016.csv` or raw stream data `/data/streams`. 
 
 ## Installing the requirements
 ```pip install -r requirements.txt```
