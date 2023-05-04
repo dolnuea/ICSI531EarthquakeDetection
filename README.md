@@ -40,6 +40,11 @@ Tensorflow base model and layers can be found in `tflib` repository.
 
 Steps to train the network on a dataset of waveforms:
 
+### Using already pre-processed tensorflow records:
+- Skip to step 3.4
+
+### Using raw data:
+
 - Use a catalog of located events and partition them into clusters. This create a new catalog of labeled events. The script is in `bin/preprocess`.
 - Load month long continuous waveform data. Preprocess them (mean removal, normalization). Use the catalog of labeled events to create event windows from the continuous waveform data. Use a catalog to create noise windows from continuous waveform data. The codes are in `bin/preprocess`.
 - Train ConvNetQuake on the training windows, visualize of the training and evaluate on a test windows. The codes are in `bin/`.
