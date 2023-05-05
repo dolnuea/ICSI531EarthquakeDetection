@@ -2,7 +2,6 @@ import abc
 import os
 import time
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import timeline
 

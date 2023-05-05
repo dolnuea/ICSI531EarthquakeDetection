@@ -1,13 +1,9 @@
 """Classes and functions to read, write and feed data."""
 
 import os
-import re
+
 import numpy as np
 import tensorflow as tf
-from tqdm import tqdm
-import csv
-import json
-from obspy.core.utcdatetime import UTCDateTime
 
 POSITIVE_EXAMPLES_PATH = 'positive'
 NEGATIVE_EXAMPLES_PATH = 'negative'

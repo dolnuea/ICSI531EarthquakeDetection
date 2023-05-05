@@ -13,15 +13,13 @@
 
 import argparse
 import os
-import time
 
-import numpy as np
-import tensorflow as tf
 import setproctitle
+import tensorflow as tf
 
-import quakenet.models as models
-import quakenet.data_pipeline as dp
 import quakenet.config as config
+import quakenet.data_pipeline as dp
+import quakenet.models as models
 
 
 def main(args):

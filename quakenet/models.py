@@ -12,15 +12,10 @@ and overwrite the _setup_prediction method to change the network
 architecture
 """
 
-import os
-import time
-
-import numpy as np
 import tensorflow as tf
-from tensorflow.python.client import timeline
 
-import tflib.model
 import tflib.layers as layers
+import tflib.model
 
 
 def get(model_name, inputs, config, checkpoint_dir, is_training=False):
@@ -105,7 +100,7 @@ class ConvNetQuake(tflib.model.BaseModel):
                 self.summaries.append(tf.raw_ops.ScalarSummary(tags=['loss/regularization'], values=[reg_loss]))
             self.loss += reg_loss
 
-        self.summaries.append(tf.raw_ops.ScalarSummary(tags=['loss/train.py'], values=[self.loss]))
+        self.summaries.append(tf.raw_ops.ScalarSummary(tags=['loss/train'], values=[self.loss]))
 
         with tf.compat.v1.name_scope('accuracy'):
             is_true_event = tf.cast(tf.greater(targets, tf.zeros_like(targets)), tf.int64)
@@ -114,8 +109,9 @@ class ConvNetQuake(tflib.model.BaseModel):
             is_correct = tf.equal(self.layers['class_prediction'], targets)
             self.detection_accuracy = tf.reduce_mean(tf.cast(detection_is_correct, dtype=tf.float32))
             self.localization_accuracy = tf.reduce_mean(tf.cast(is_correct, dtype=tf.float32))
-            self.summaries.append(tf.raw_ops.ScalarSummary(tags=['detection_accuracy/train.py'], values=[self.detection_accuracy]))
-            self.summaries.append(tf.raw_ops.ScalarSummary(tags=['localization_accuracy/train.py'], values=[self.localization_accuracy]))
+            # todo
+            self.summaries.append(tf.raw_ops.ScalarSummary(tags=['detection_accuracy/train'], values=[self.detection_accuracy]))
+            self.summaries.append(tf.raw_ops.ScalarSummary(tags=['localization_accuracy/train'], values=[self.localization_accuracy]))
 
     def _setup_optimizer(self, learning_rate):
         update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
