@@ -4,6 +4,7 @@ Perol., T, M. Gharbi and M. Denolle. Convolutional Neural Network for Earthquake
 
 ## Installing the dataset
 * Download the [data](https://www.dropbox.com/sh/3p9rmi1bcpvnk5k/AAAV8n9VG_e0QXOpoofsSH0Ma?dl=0). You do not have to download the whole thing. For train dataset, you can download the already processed seismic data in tensorflow files `6_clusters/detection/train`. For raw catalog data, download `data/catalogs/OK_2014-2015-2016.csv` or raw stream data `/data/streams`. 
+* For test dataset, download `data/6_clusters/detection/test_noise` and/or `data/6_clusters/detection/test_events`.
 
 ## Installing the requirements
 ```pip install -r requirements.txt```
