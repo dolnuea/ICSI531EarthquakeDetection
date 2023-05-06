@@ -18,31 +18,28 @@ e.g.,
 --dst data/6_clusters --n_components 6 --model KMeans
 """
 
-from os import path
-from quakenet import data_pipeline as dpp
-from quakenet import data_io
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import sys
-import gflags
-from quakenet.data_io import write_catalog_with_clusters
-import os
-from obspy.core.utcdatetime import UTCDateTime
-import pandas as pd
 import collections
+import os
+import sys
 
+import gflags
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from obspy.core.utcdatetime import UTCDateTime
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.mixture import GaussianMixture
-import seaborn as sns
-from openquake.hazardlib.geo.geodetic import distance
 
+from openquake.hazardlib.geo.geodetic import distance
+from quakenet import data_io
+from quakenet.data_io import write_catalog_with_clusters
 
 gflags.DEFINE_string(
     'src', None, 'path to the events catalog to use as labels.')
 gflags.DEFINE_string('dst', None, 'path to the output catalog with cluster id')
 gflags.MarkFlagAsRequired('src')
-gflags.DEFINE_string('model', 'KMeans','DBSCAN or KMeans')
+gflags.DEFINE_string('model', 'KMeans', 'DBSCAN or KMeans')
 gflags.DEFINE_integer('n_components', 4, 'number of mixture component')
 FLAGS = gflags.FLAGS
 
@@ -62,6 +59,7 @@ def filter_catalog(cat):
     begin_february = UTCDateTime(2014, 2, 15, 00, 00, 00, 500000)
     cat = cat[cat.utc_timestamp > begin_february]
     return cat
+
 
 def get_test_coordinates(cat):
     """
@@ -134,7 +132,6 @@ def main(argv):
     feats = np.hstack((lon[:, None], lat[:, None]))
     print(" + Calculating the distance matrix")
 
-
     print(" + Running {}".format(FLAGS.model))
     if FLAGS.model == 'DBSCAN':
         distance_matrix = get_distance_matrix(feats)
@@ -144,33 +141,33 @@ def main(argv):
         clust_labels = clust.labels_
     elif FLAGS.model == 'KMeans':
 
-        if FLAGS.n_components ==6:
-            initialization = np.array([ [-97.6, 36],
-                                        [-97.4,35.85],
-                                        [-97.2, 35.85],
-                                        [-97.3,35.75],
-                                        [-97.4,35.95],
-                                        [-97.6,35.75]])
+        if FLAGS.n_components == 6:
+            initialization = np.array([[-97.6, 36],
+                                       [-97.4, 35.85],
+                                       [-97.2, 35.85],
+                                       [-97.3, 35.75],
+                                       [-97.4, 35.95],
+                                       [-97.6, 35.75]])
         elif FLAGS.n_components == 50:
-            init_50 = os.path.join(FLAGS.dst,'centroids_50.npy')
+            init_50 = os.path.join(FLAGS.dst, 'centroids_50.npy')
             initialization = np.load(init_50)
         else:
             # random initialization
             initialization = 'k-means++'
 
         clust = KMeans(FLAGS.n_components,
-                       n_init=10,init=initialization).fit(feats)
+                       n_init=10, init=initialization).fit(feats)
         clust_labels = clust.labels_
         labels = list(set(clust_labels))
 
         # Display predicted scores by the model as contour plot
-        x = np.linspace(min(lon), max(lon),1000)
-        y = np.linspace(min(lat), max(lat),1000)
+        x = np.linspace(min(lon), max(lon), 1000)
+        y = np.linspace(min(lat), max(lat), 1000)
         X, Y = np.meshgrid(x, y)
         XX = np.array([X.ravel(), Y.ravel()]).T
         Z = clust.predict(XX)
         Z = Z.reshape(X.shape)
-        plt.contour(X,Y,Z, colors='k',levels=range(FLAGS.n_components))
+        plt.contour(X, Y, Z, colors='k', levels=range(FLAGS.n_components))
         plt.xlabel("longitude")
         plt.ylabel("latitude")
 
@@ -180,14 +177,14 @@ def main(argv):
         labels = list(set(clust_labels))
 
         # Display predicted scores by the model as contour plot
-        x = np.linspace(min(lon), max(lon),10)
-        y = np.linspace(min(lat), max(lat),10)
+        x = np.linspace(min(lon), max(lon), 10)
+        y = np.linspace(min(lat), max(lat), 10)
         X, Y = np.meshgrid(x, y)
         XX = np.array([X.ravel(), Y.ravel()]).T
-        print ('XX', XX)
+        print('XX', XX)
         Z = clust.score_samples(XX)
         Z = Z.reshape(X.shape)
-        plt.contourf(X,Y,Z, alpha=0.3)
+        plt.contourf(X, Y, Z, alpha=0.3)
         plt.colorbar()
 
     else:
@@ -198,19 +195,19 @@ def main(argv):
     plt.plot(OK027_LONG, OK027_LAT, '*', linewidth=10)
 
     # Save labels metadata
-    metadata_path = os.path.join(FLAGS.dst,"clusters_metadata.json")
+    metadata_path = os.path.join(FLAGS.dst, "clusters_metadata.json")
     counter = collections.Counter(clust_labels)
-    pd.DataFrame.from_dict(counter,orient='index')[0].to_json(metadata_path)
+    pd.DataFrame.from_dict(counter, orient='index')[0].to_json(metadata_path)
 
     # Save output catalog
-    output_path = os.path.join(FLAGS.dst,"catalog_with_cluster_ids.csv")
+    output_path = os.path.join(FLAGS.dst, "catalog_with_cluster_ids.csv")
     write_catalog_with_clusters(utc_time, clust_labels, lat, lon, depth, output_path)
 
     # plot the labels
     for label in labels:
         colors = sns.color_palette('hls', len(labels))[label]
         plt.scatter(lon[clust_labels == label], lat[clust_labels == label],
-                    c = colors,
+                    c=colors,
                     linewidth=0, label=label)
 
     if FLAGS.n_components < 8:
@@ -218,23 +215,24 @@ def main(argv):
 
     # plot test data
     lat_test, lon_test = get_test_coordinates(cat)
-    plt.scatter(lon_test, lat_test, marker='+', linewidth=4,c='k')
+    plt.scatter(lon_test, lat_test, marker='+', linewidth=4, c='k')
     print('number of events', lat_test.shape[0])
     plt.grid(False)
 
     fig_name = os.path.join(FLAGS.dst,
-                    "cluster_ids_{}_comp.eps".format(FLAGS.n_components))
+                            "cluster_ids_{}_comp.eps".format(FLAGS.n_components))
     # plt.show()
     plt.savefig(fig_name)
 
     # Couple of files useful to keep
     np_name = "cluster_ids_{}_comp.npy".format(FLAGS.n_components)
-    np.save(np_name,Z)
+    np.save(np_name, Z)
 
     np_name = "cluster_ids_{}_comp_lon.npy".format(FLAGS.n_components)
-    np.save(np_name,x)
+    np.save(np_name, x)
     np_name = "cluster_ids_{}_comp_lat.npy".format(FLAGS.n_components)
-    np.save(np_name,y)
+    np.save(np_name, y)
+
 
 if __name__ == "__main__":
     main(sys.argv)
