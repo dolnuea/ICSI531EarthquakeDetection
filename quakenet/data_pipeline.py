@@ -83,6 +83,7 @@ class DataReader(object):
             for f in files:
                 if f.endswith(".tfrecords"):
                     fnames.append(os.path.join(root, f))
+                    print(fnames)
         fname_q = tf.compat.v1.train.string_input_producer(fnames,
                                                  shuffle=self._shuffle,
                                                  num_epochs=self._config.n_epochs)
@@ -112,7 +113,7 @@ class DataReader(object):
 
 
 class DataPipeline(object):
-
+    tf.compat.v1.disable_eager_execution()
     """Creates a queue op to stream data for training.
 
     Attributes:

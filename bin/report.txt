@@ -1,0 +1,21 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 0 issues that require attention
+--------------------------------------------------------------------------------
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'test.py'
+ outputting to 'test2.py'
+--------------------------------------------------------------------------------
+
+85:26: INFO: Renamed 'tf.train.start_queue_runners' to 'tf.compat.v1.train.start_queue_runners'
+90:23: INFO: Renamed 'tf.train.global_step' to 'tf.compat.v1.train.global_step'
+147:34: INFO: Renamed 'tf.Summary' to 'tf.compat.v1.Summary'
+147:52: INFO: Renamed 'tf.Summary' to 'tf.compat.v1.Summary'
+163:12: INFO: Renamed 'tf.reset_default_graph' to 'tf.compat.v1.reset_default_graph'
+--------------------------------------------------------------------------------
+
