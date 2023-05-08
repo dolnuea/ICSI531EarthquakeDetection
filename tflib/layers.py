@@ -1,4 +1,8 @@
 import tensorflow as tf
+import numpy as np
+from tensorflow.keras.layers import *
+from tensorflow.keras.initializers import VarianceScaling
+
 
 
 def conv(inputs,

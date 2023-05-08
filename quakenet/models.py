@@ -63,7 +63,7 @@ class ConvNetQuake(tflib.model.BaseModel):
         self.layers['class_prob'] = tf.nn.softmax(current_layer, name='class_prob')
         self.layers['class_prediction'] = tf.argmax(self.layers['class_prob'], 1, name='class_pred')
 
-        tf.keras.regularizers.l2(self.config.regularization) \
+        tf.keras.regularizers.l2(self.config.regularization)\
             (tf.stack([tf.nn.l2_loss(w) for w in tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.WEIGHTS)]))
 
     def validation_metrics(self):

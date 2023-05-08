@@ -77,7 +77,7 @@ def main(args):
                                is_training=False)
             metrics = model.validation_metrics()
             #Validation summary writer
-            #summary_writer = tf.train.SummaryWriter(summary_dir, None)
+            summary_writer = tf.train.SummaryWriter(summary_dir, None)
 
             with tf.compat.v1.Session() as sess:
                 coord = tf.train.Coordinator()
@@ -146,10 +146,10 @@ def main(args):
                         mean_metrics[key] /= n
                         summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(
                             tag='{}/val'.format(key), simple_value=mean_metrics[key])])
-                        #if args.save_summary:
-                            #summary_writer.add_summary(summary, global_step=step)
+                        if args.save_summary:
+                            summary_writer.add_summary(summary, global_step=step)
 
-                #summary_writer.flush()
+                summary_writer.flush()
 
                 mess = model.validation_metrics_message(mean_metrics)
                 print
@@ -201,8 +201,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='/Users/nidvad/PycharmProjects/ICSI531EarthquakeDetection/data/test_events',
                         help='path to the recrords to evaluate') #test_noise for test noise
-    #parser.add_argument('--checkpoint_dir', default='/Users/nidvad/PycharmProjects/ICSI531EarthquakeDetection/data/output/convNetQuake',
-                        #type=str, help='path to checkpoints directory')
+    parser.add_argument('--checkpoint_dir', default='/Users/nidvad/PycharmProjects/ICSI531EarthquakeDetection/data/output/convNetQuake',
+                        type=str, help='path to checkpoints directory')
     parser.add_argument('--step', type=int, default=None,
                         help='step to load')
     parser.add_argument('--model', type=str, default='ConvNetQuake',
