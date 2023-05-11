@@ -146,14 +146,14 @@ In both scripts, pass an integer in seconds to `--eval_interval` to set the time
 ### Evaluation/Testing:
 
 ```shell
-./bin/evaluate --checkpoint_dir output/convnetquake/ConvNetQuake \
+./bin/test --checkpoint_dir output/convnetquake/ConvNetQuake \
 --dataset data/6_clusters/test_events \
 --eval_interval 10 --n_clusters 6 \
 --events
 ```
 
 ```shell
-./bin/evaluate --checkpoint_dir output/convnetquake/ConvNetQuake \
+./bin/test --checkpoint_dir output/convnetquake/ConvNetQuake \
 --dataset data/6_clusters/test_noise --eval_interval 10 \
 --n_clusters 6 --noise
 ```
